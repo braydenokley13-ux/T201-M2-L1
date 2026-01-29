@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOW Sports Capital Presents - MLB Money Maker</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen" class="screen active">
+        <div class="intro-content">
+            <div class="branding">
+                <div class="bow-logo">BOW SPORTS CAPITAL</div>
+                <div class="presents">PRESENTS</div>
+            </div>
+            <h1 class="game-title">MLB MONEY MAKER</h1>
+            <p class="game-subtitle">The Ultimate League Negotiation Challenge</p>
+
+            <div class="intro-scenario">
+                <div class="scenario-icon">&#9918;</div>
+                <h2>Your Mission</h2>
+                <p>It's January 2025. Major League Baseball needs a new 8-year media deal worth <strong>$8 BILLION</strong>.</p>
+                <p>You've been appointed as the <strong>Lead Negotiator</strong>. Your job: split the money among stakeholders while keeping everyone happy enough to sign.</p>
+                <p class="warning-text">If any group gets too angry, the deal collapses!</p>
+            </div>
+
+            <div class="stakeholder-preview">
+                <div class="stakeholder-card">
+                    <div class="stakeholder-icon">&#9917;</div>
+                    <span>Players Union</span>
+                </div>
+                <div class="stakeholder-card">
+                    <div class="stakeholder-icon">&#127970;</div>
+                    <span>Team Owners</span>
+                </div>
+                <div class="stakeholder-card">
+                    <div class="stakeholder-icon">&#128250;</div>
+                    <span>Networks</span>
+                </div>
+                <div class="stakeholder-card">
+                    <div class="stakeholder-icon">&#128101;</div>
+                    <span>Fans</span>
+                </div>
+            </div>
+
+            <button id="start-btn" class="btn-primary">START NEGOTIATING</button>
+
+            <p class="learn-text">Learn how billion-dollar media deals shape professional sports</p>
+        </div>
+    </div>
+
+    <!-- MAIN GAME SCREEN -->
+    <div id="game-screen" class="screen">
+        <!-- Header with Heartbeat Monitor -->
+        <header class="game-header">
+            <div class="header-left">
+                <span class="bow-small">BOW SPORTS CAPITAL</span>
+                <span class="game-name">MLB MONEY MAKER</span>
+            </div>
+            <div class="header-center">
+                <div id="heartbeat-container">
+                    <canvas id="heartbeat-canvas" width="200" height="50"></canvas>
+                    <span id="stability-text">DEAL STABLE</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div id="timer-display">
+                    <span class="timer-label">TIME LEFT</span>
+                    <span id="timer-value">5:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-main">
+            <!-- Left Panel - Characters -->
+            <aside class="characters-panel">
+                <h3>STAKEHOLDERS</h3>
+
+                <div class="character" id="char-players">
+                    <div class="char-avatar">
+                        <div class="char-face" id="face-players">&#128578;</div>
+                    </div>
+                    <div class="char-info">
+                        <span class="char-name">Tony Clark</span>
+                        <span class="char-role">Players Union</span>
+                    </div>
+                    <div class="satisfaction-bar">
+                        <div class="satisfaction-fill" id="sat-bar-players" style="width: 50%"></div>
+                    </div>
+                    <span class="satisfaction-value" id="sat-val-players">50%</span>
+                    <div class="speech-bubble" id="speech-players">Waiting for your offer...</div>
+                </div>
+
+                <div class="character" id="char-owners">
+                    <div class="char-avatar">
+                        <div class="char-face" id="face-owners">&#128578;</div>
+                    </div>
+                    <div class="char-info">
+                        <span class="char-name">Team Owners</span>
+                        <span class="char-role">30 Franchises</span>
+                    </div>
+                    <div class="satisfaction-bar">
+                        <div class="satisfaction-fill" id="sat-bar-owners" style="width: 50%"></div>
+                    </div>
+                    <span class="satisfaction-value" id="sat-val-owners">50%</span>
+                    <div class="speech-bubble" id="speech-owners">Let's see the numbers...</div>
+                </div>
+
+                <div class="character" id="char-networks">
+                    <div class="char-avatar">
+                        <div class="char-face" id="face-networks">&#128578;</div>
+                    </div>
+                    <div class="char-info">
+                        <span class="char-name">Network Execs</span>
+                        <span class="char-role">ESPN, Fox, Apple+</span>
+                    </div>
+                    <div class="satisfaction-bar">
+                        <div class="satisfaction-fill" id="sat-bar-networks" style="width: 50%"></div>
+                    </div>
+                    <span class="satisfaction-value" id="sat-val-networks">50%</span>
+                    <div class="speech-bubble" id="speech-networks">Show us the viewership plan...</div>
+                </div>
+
+                <div class="character" id="char-fans">
+                    <div class="char-avatar">
+                        <div class="char-face" id="face-fans">&#128578;</div>
+                    </div>
+                    <div class="char-info">
+                        <span class="char-name">MLB Fans</span>
+                        <span class="char-role">Millions Strong</span>
+                    </div>
+                    <div class="satisfaction-bar">
+                        <div class="satisfaction-fill" id="sat-bar-fans" style="width: 50%"></div>
+                    </div>
+                    <span class="satisfaction-value" id="sat-val-fans">50%</span>
+                    <div class="speech-bubble" id="speech-fans">We want fair competition!</div>
+                </div>
+            </aside>
+
+            <!-- Center Panel - Main Interaction Area -->
+            <section class="main-panel">
+                <!-- Phase 1: Money Allocation -->
+                <div id="phase-money" class="game-phase active">
+                    <h2>PHASE 1: Allocate the $8 Billion</h2>
+                    <p class="phase-instructions">Drag money from the center pile to each stakeholder bucket. Balance carefully!</p>
+
+                    <div class="money-allocation">
+                        <div class="money-pie" id="money-pie">
+                            <canvas id="pie-canvas" width="200" height="200"></canvas>
+                            <div class="pie-center">
+                                <span id="remaining-money">$8.0B</span>
+                                <span class="pie-label">TO ALLOCATE</span>
+                            </div>
+                        </div>
+
+                        <div class="allocation-buckets">
+                            <div class="bucket" id="bucket-players" data-stakeholder="players">
+                                <div class="bucket-icon">&#9917;</div>
+                                <div class="bucket-label">Players</div>
+                                <div class="bucket-amount" id="amount-players">$0.0B</div>
+                                <div class="bucket-controls">
+                                    <button class="bucket-btn minus" data-action="minus" data-target="players">-</button>
+                                    <input type="range" min="0" max="80" value="0" class="bucket-slider" id="slider-players" data-target="players">
+                                    <button class="bucket-btn plus" data-action="plus" data-target="players">+</button>
+                                </div>
+                            </div>
+
+                            <div class="bucket" id="bucket-owners" data-stakeholder="owners">
+                                <div class="bucket-icon">&#127970;</div>
+                                <div class="bucket-label">Team Owners</div>
+                                <div class="bucket-amount" id="amount-owners">$0.0B</div>
+                                <div class="bucket-controls">
+                                    <button class="bucket-btn minus" data-action="minus" data-target="owners">-</button>
+                                    <input type="range" min="0" max="80" value="0" class="bucket-slider" id="slider-owners" data-target="owners">
+                                    <button class="bucket-btn plus" data-action="plus" data-target="owners">+</button>
+                                </div>
+                            </div>
+
+                            <div class="bucket" id="bucket-networks" data-stakeholder="networks">
+                                <div class="bucket-icon">&#128250;</div>
+                                <div class="bucket-label">Networks</div>
+                                <div class="bucket-amount" id="amount-networks">$0.0B</div>
+                                <div class="bucket-controls">
+                                    <button class="bucket-btn minus" data-action="minus" data-target="networks">-</button>
+                                    <input type="range" min="0" max="80" value="0" class="bucket-slider" id="slider-networks" data-target="networks">
+                                    <button class="bucket-btn plus" data-action="plus" data-target="networks">+</button>
+                                </div>
+                            </div>
+
+                            <div class="bucket" id="bucket-league" data-stakeholder="league">
+                                <div class="bucket-icon">&#9918;</div>
+                                <div class="bucket-label">League Operations</div>
+                                <div class="bucket-amount" id="amount-league">$0.0B</div>
+                                <div class="bucket-controls">
+                                    <button class="bucket-btn minus" data-action="minus" data-target="league">-</button>
+                                    <input type="range" min="0" max="80" value="0" class="bucket-slider" id="slider-league" data-target="league">
+                                    <button class="bucket-btn plus" data-action="plus" data-target="league">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="phase1-next" class="btn-primary" disabled>LOCK IN ALLOCATION</button>
+                </div>
+
+                <!-- Phase 2: Deal Details (Sliders) -->
+                <div id="phase-sliders" class="game-phase">
+                    <h2>PHASE 2: Negotiate the Details</h2>
+                    <p class="phase-instructions">Adjust each slider to fine-tune the deal. Watch how each change affects stakeholders!</p>
+
+                    <div class="sliders-container">
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Minimum Player Salary</span>
+                                <span class="slider-value" id="val-salary">$750K</span>
+                            </div>
+                            <input type="range" min="400" max="1500" value="750" class="detail-slider" id="detail-salary">
+                            <div class="slider-labels">
+                                <span>$400K</span>
+                                <span class="current-label">Current: $750K</span>
+                                <span>$1.5M</span>
+                            </div>
+                            <p class="slider-impact" id="impact-salary">Affects player satisfaction and team payrolls</p>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Revenue Sharing %</span>
+                                <span class="slider-value" id="val-sharing">35%</span>
+                            </div>
+                            <input type="range" min="10" max="60" value="35" class="detail-slider" id="detail-sharing">
+                            <div class="slider-labels">
+                                <span>10%</span>
+                                <span class="current-label">Current: ~35%</span>
+                                <span>60%</span>
+                            </div>
+                            <p class="slider-impact" id="impact-sharing">How much big-market teams share with small-market teams</p>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Prime Time Game Start</span>
+                                <span class="slider-value" id="val-gametime">8:00 PM</span>
+                            </div>
+                            <input type="range" min="7" max="11" value="8" step="0.5" class="detail-slider" id="detail-gametime">
+                            <div class="slider-labels">
+                                <span>7 PM</span>
+                                <span class="current-label">East Coast</span>
+                                <span>11 PM</span>
+                            </div>
+                            <p class="slider-impact" id="impact-gametime">Later = more West Coast viewers, but fans and players tired</p>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Streaming Exclusives</span>
+                                <span class="slider-value" id="val-streaming">25%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="25" class="detail-slider" id="detail-streaming">
+                            <div class="slider-labels">
+                                <span>0%</span>
+                                <span class="current-label">% of games streaming-only</span>
+                                <span>100%</span>
+                            </div>
+                            <p class="slider-impact" id="impact-streaming">More streaming = younger viewers happy, older fans frustrated</p>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Player Revenue Share</span>
+                                <span class="slider-value" id="val-playershare">48%</span>
+                            </div>
+                            <input type="range" min="40" max="60" value="48" class="detail-slider" id="detail-playershare">
+                            <div class="slider-labels">
+                                <span>40%</span>
+                                <span class="current-label">Current: 48.5%</span>
+                                <span>60%</span>
+                            </div>
+                            <p class="slider-impact" id="impact-playershare">% of league revenue going to player salaries (CBA key term)</p>
+                        </div>
+                    </div>
+
+                    <button id="phase2-next" class="btn-primary">CONTINUE TO MINI-GAMES</button>
+                </div>
+
+                <!-- Phase 3: Mini-Games -->
+                <div id="phase-minigames" class="game-phase">
+                    <h2>PHASE 3: Prove Your Knowledge</h2>
+                    <p class="phase-instructions">Complete these challenges to earn bonus points with stakeholders!</p>
+
+                    <div class="minigame-selector">
+                        <div class="minigame-card" id="mg-salary" data-game="salary">
+                            <div class="mg-icon">&#128176;</div>
+                            <h3>Player Salary Match</h3>
+                            <p>Match real MLB players to their salaries</p>
+                            <span class="mg-status">NOT PLAYED</span>
+                        </div>
+
+                        <div class="minigame-card" id="mg-network" data-game="network">
+                            <div class="mg-icon">&#128250;</div>
+                            <h3>Network Speed Click</h3>
+                            <p>Click network logos as fast as you can!</p>
+                            <span class="mg-status">NOT PLAYED</span>
+                        </div>
+
+                        <div class="minigame-card" id="mg-teams" data-game="teams">
+                            <div class="mg-icon">&#127942;</div>
+                            <h3>Team Market Quiz</h3>
+                            <p>Sort teams by market size</p>
+                            <span class="mg-status">NOT PLAYED</span>
+                        </div>
+
+                        <div class="minigame-card" id="mg-calc" data-game="calc">
+                            <div class="mg-icon">&#129518;</div>
+                            <h3>Salary Cap Calculator</h3>
+                            <p>Calculate the salary cap from revenue</p>
+                            <span class="mg-status">NOT PLAYED</span>
+                        </div>
+                    </div>
+
+                    <button id="phase3-next" class="btn-primary">FINALIZE THE DEAL</button>
+                </div>
+            </section>
+
+            <!-- Right Panel - Stats & Graphs -->
+            <aside class="stats-panel">
+                <h3>DEAL METRICS</h3>
+
+                <div class="metric-card">
+                    <h4>Overall Score</h4>
+                    <div class="score-circle" id="overall-score">
+                        <span class="score-value">50</span>
+                        <span class="score-label">%</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>Competitive Balance</h4>
+                    <div class="balance-meter">
+                        <div class="balance-fill" id="balance-fill" style="width: 50%"></div>
+                    </div>
+                    <div class="balance-labels">
+                        <span>UNFAIR</span>
+                        <span>FAIR</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <h4>Money Flow</h4>
+                    <canvas id="flow-chart" width="180" height="120"></canvas>
+                </div>
+
+                <div class="metric-card">
+                    <h4>Real MLB Context</h4>
+                    <div class="context-facts">
+                        <p><strong>Current TV Deal:</strong> $1.85B/year</p>
+                        <p><strong>New Deal Goal:</strong> $7-10B total</p>
+                        <p><strong>Deal Expires:</strong> Dec 2028</p>
+                        <p><strong>Teams:</strong> 30 franchises</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- MINI-GAME OVERLAY -->
+    <div id="minigame-overlay" class="overlay">
+        <div class="minigame-container">
+            <button class="close-minigame" id="close-minigame">&times;</button>
+
+            <!-- Salary Match Game -->
+            <div id="game-salary" class="minigame-content">
+                <h2>Player Salary Match</h2>
+                <p>Drag the correct salary to each player!</p>
+                <div class="timer-bar" id="salary-timer"><div class="timer-fill"></div></div>
+                <div class="salary-game-area">
+                    <div class="player-cards" id="player-cards"></div>
+                    <div class="salary-options" id="salary-options"></div>
+                </div>
+                <div class="minigame-score">Score: <span id="salary-score">0</span>/5</div>
+            </div>
+
+            <!-- Network Click Game -->
+            <div id="game-network" class="minigame-content">
+                <h2>Network Speed Click</h2>
+                <p>Click the network logos in the order they appear!</p>
+                <div class="timer-bar" id="network-timer"><div class="timer-fill"></div></div>
+                <div class="network-game-area" id="network-game-area"></div>
+                <div class="minigame-score">Clicks: <span id="network-score">0</span></div>
+            </div>
+
+            <!-- Team Market Quiz -->
+            <div id="game-teams" class="minigame-content">
+                <h2>Team Market Quiz</h2>
+                <p>Is this team BIG market or SMALL market?</p>
+                <div class="timer-bar" id="teams-timer"><div class="timer-fill"></div></div>
+                <div class="teams-game-area">
+                    <div class="team-display" id="team-display">
+                        <div class="team-logo" id="quiz-team-logo"></div>
+                        <div class="team-name" id="quiz-team-name">Yankees</div>
+                    </div>
+                    <div class="market-buttons">
+                        <button class="market-btn" id="btn-big">BIG MARKET</button>
+                        <button class="market-btn" id="btn-small">SMALL MARKET</button>
+                    </div>
+                </div>
+                <div class="minigame-score">Score: <span id="teams-score">0</span>/10</div>
+            </div>
+
+            <!-- Salary Cap Calculator -->
+            <div id="game-calc" class="minigame-content">
+                <h2>Salary Cap Calculator</h2>
+                <p>Calculate: If league revenue is shown, what's the salary cap at 50%?</p>
+                <div class="calc-game-area">
+                    <div class="calc-problem" id="calc-problem">
+                        <span class="calc-revenue">League Revenue: $10B</span>
+                        <span class="calc-question">Player Share (50%) = ?</span>
+                    </div>
+                    <div class="calc-options" id="calc-options"></div>
+                </div>
+                <div class="minigame-score">Score: <span id="calc-score">0</span>/3</div>
+            </div>
+
+            <!-- Mini-game Results -->
+            <div id="minigame-results" class="minigame-content">
+                <h2 id="mg-result-title">Great Job!</h2>
+                <div class="mg-result-score" id="mg-result-score">+10</div>
+                <p id="mg-result-message">Stakeholder satisfaction increased!</p>
+                <button class="btn-primary" id="mg-continue">CONTINUE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="results-screen" class="screen">
+        <div class="results-content">
+            <div class="branding">
+                <div class="bow-logo">BOW SPORTS CAPITAL</div>
+            </div>
+
+            <div id="results-success" class="results-outcome">
+                <h1 id="result-title">DEAL COMPLETE!</h1>
+                <div class="result-grade" id="result-grade">
+                    <span class="grade-tier" id="grade-tier">GOLD</span>
+                    <span class="grade-score" id="grade-score">95%</span>
+                </div>
+
+                <div class="final-stats">
+                    <div class="final-stat">
+                        <span class="stat-label">Players</span>
+                        <span class="stat-value" id="final-players">85%</span>
+                    </div>
+                    <div class="final-stat">
+                        <span class="stat-label">Owners</span>
+                        <span class="stat-value" id="final-owners">90%</span>
+                    </div>
+                    <div class="final-stat">
+                        <span class="stat-label">Networks</span>
+                        <span class="stat-value" id="final-networks">88%</span>
+                    </div>
+                    <div class="final-stat">
+                        <span class="stat-label">Fans</span>
+                        <span class="stat-value" id="final-fans">82%</span>
+                    </div>
+                </div>
+
+                <div class="result-narrative" id="result-narrative">
+                    Your balanced approach created a deal everyone can live with. The new media contract will bring unprecedented revenue to MLB while maintaining competitive balance across all 30 teams.
+                </div>
+
+                <div class="claim-code-section">
+                    <h2>YOUR CLAIM CODE</h2>
+                    <div class="claim-code-box" id="claim-code-box">
+                        <span id="claim-code">MLB-GOLD-8X9K2P-2025</span>
+                    </div>
+                    <p class="claim-instructions">SCREENSHOT THIS CODE TO SUBMIT!</p>
+                </div>
+            </div>
+
+            <div id="results-failed" class="results-outcome" style="display: none;">
+                <h1>DEAL COLLAPSED!</h1>
+                <div class="fail-icon">&#128557;</div>
+                <p class="fail-message" id="fail-message">The Players Union walked away from the table. Your offer wasn't fair enough.</p>
+                <button id="try-again-btn" class="btn-primary">TRY AGAIN</button>
+            </div>
+
+            <div class="results-footer">
+                <p>Learn how billion-dollar media deals shape professional sports</p>
+                <p class="mlb-credit">Module 2 Lesson 1 - The League as a Business</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/calculations.js"></script>
+    <script src="js/codegen.js"></script>
+    <script src="js/minigames.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
