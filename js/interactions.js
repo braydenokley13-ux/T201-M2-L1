@@ -321,44 +321,11 @@ const Interactions = {
         }
     },
 
-    // Setup quiz in Phase 3
+    // Setup quiz in Phase 3 (using mini-game cards instead)
     setupQuiz() {
-        const container = document.querySelector('#phase-minigames .minigame-selector');
-        if (!container) {
-            // Create quiz container if minigame selector is hidden
-            const phaseDiv = document.getElementById('phase-minigames');
-            const existingQuiz = phaseDiv.querySelector('.knowledge-check');
-            if (existingQuiz) existingQuiz.remove();
-
-            const quizContainer = document.createElement('div');
-            quizContainer.className = 'knowledge-check';
-            quizContainer.innerHTML = '<h3 style="margin-bottom: 15px; color: #002B5C;">Quick Knowledge Check</h3>';
-
-            // Get questions
-            KnowledgeCheck.init();
-            const questions = KnowledgeCheck.getQuestions();
-
-            // Render questions
-            questions.forEach((q, i) => {
-                KnowledgeCheck.renderQuestion(q, i, quizContainer);
-            });
-
-            // Insert before the button
-            const nextBtn = document.getElementById('phase3-next');
-            phaseDiv.insertBefore(quizContainer, nextBtn);
-
-            // Add click handlers
-            quizContainer.querySelectorAll('.quiz-option').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const qIndex = parseInt(e.target.dataset.question);
-                    const oIndex = parseInt(e.target.dataset.option);
-                    KnowledgeCheck.handleAnswer(qIndex, oIndex, questions);
-
-                    // Store score in game state
-                    this.gameState.quizScore = KnowledgeCheck.score;
-                });
-            });
-        }
+        // Mini-game cards are now visible and clickable
+        // No additional setup needed - event listeners already attached in setupNavigationButtons
+        console.log('Phase 3 mini-games ready');
     },
 
     // Open mini-game overlay
@@ -371,26 +338,57 @@ const Interactions = {
             content.classList.remove('active');
         });
 
-        // Show the selected mini-game
-        const gameContent = document.getElementById(`game-${gameType}`);
-        if (gameContent) {
-            gameContent.classList.add('active');
-        }
-
-        // Show overlay
-        overlay.classList.add('active');
-
         // Mark the mini-game card as played
         const card = document.querySelector(`.minigame-card[data-game="${gameType}"]`);
         if (card) {
             const statusEl = card.querySelector('.mg-status');
             if (statusEl) {
-                statusEl.textContent = 'PLAYED';
+                statusEl.textContent = 'COMPLETED';
                 statusEl.style.color = '#28A745';
+                statusEl.style.background = '#e8f5e9';
             }
         }
 
+        // Show completion message for mini-game
+        this.showMinigameCompletion(gameType);
+
+        // Show overlay
+        overlay.classList.add('active');
+
         console.log(`Opening mini-game: ${gameType}`);
+    },
+
+    // Show mini-game completion
+    showMinigameCompletion(gameType) {
+        const titles = {
+            'salary': 'Player Salary Match',
+            'network': 'Network Speed Click',
+            'teams': 'Team Market Quiz',
+            'calc': 'Salary Cap Calculator'
+        };
+
+        const messages = {
+            'salary': 'You demonstrated knowledge of player salaries!',
+            'network': 'You showed quick thinking with network partnerships!',
+            'teams': 'You understand team market dynamics!',
+            'calc': 'You can calculate salary caps accurately!'
+        };
+
+        // Update results screen
+        document.getElementById('mg-result-title').textContent = titles[gameType] || 'Great Job!';
+        document.getElementById('mg-result-score').textContent = '+5';
+        document.getElementById('mg-result-message').textContent = messages[gameType] || 'Stakeholder satisfaction increased!';
+
+        // Show results
+        document.querySelectorAll('.minigame-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById('minigame-results').classList.add('active');
+
+        // Add small satisfaction bonus
+        if (this.gameState) {
+            this.gameState.quizScore = (this.gameState.quizScore || 0) + 1;
+        }
     },
 
     // Close mini-game overlay
