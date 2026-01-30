@@ -294,6 +294,31 @@ const Interactions = {
                 Game.restart();
             });
         }
+
+        // Mini-game card buttons
+        const minigameCards = document.querySelectorAll('.minigame-card');
+        minigameCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const gameType = card.dataset.game;
+                this.openMinigame(gameType);
+            });
+        });
+
+        // Close mini-game overlay button
+        const closeMinigameBtn = document.getElementById('close-minigame');
+        if (closeMinigameBtn) {
+            closeMinigameBtn.addEventListener('click', () => {
+                this.closeMinigame();
+            });
+        }
+
+        // Mini-game continue button
+        const mgContinueBtn = document.getElementById('mg-continue');
+        if (mgContinueBtn) {
+            mgContinueBtn.addEventListener('click', () => {
+                this.closeMinigame();
+            });
+        }
     },
 
     // Setup quiz in Phase 3
@@ -334,6 +359,51 @@ const Interactions = {
                 });
             });
         }
+    },
+
+    // Open mini-game overlay
+    openMinigame(gameType) {
+        const overlay = document.getElementById('minigame-overlay');
+        if (!overlay) return;
+
+        // Hide all mini-game content
+        document.querySelectorAll('.minigame-content').forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // Show the selected mini-game
+        const gameContent = document.getElementById(`game-${gameType}`);
+        if (gameContent) {
+            gameContent.classList.add('active');
+        }
+
+        // Show overlay
+        overlay.classList.add('active');
+
+        // Mark the mini-game card as played
+        const card = document.querySelector(`.minigame-card[data-game="${gameType}"]`);
+        if (card) {
+            const statusEl = card.querySelector('.mg-status');
+            if (statusEl) {
+                statusEl.textContent = 'PLAYED';
+                statusEl.style.color = '#28A745';
+            }
+        }
+
+        console.log(`Opening mini-game: ${gameType}`);
+    },
+
+    // Close mini-game overlay
+    closeMinigame() {
+        const overlay = document.getElementById('minigame-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+
+        // Hide all mini-game content
+        document.querySelectorAll('.minigame-content').forEach(content => {
+            content.classList.remove('active');
+        });
     }
 };
 
