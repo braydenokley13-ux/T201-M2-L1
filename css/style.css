@@ -42,10 +42,14 @@ body {
 
 /* ==================== INTRO SCREEN ==================== */
 #intro-screen {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
+}
+
+#intro-screen.active {
+    display: flex;
 }
 
 .intro-content {
@@ -757,7 +761,7 @@ body {
 
 /* ==================== RESULTS SCREEN ==================== */
 #results-screen {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
