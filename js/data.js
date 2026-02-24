@@ -175,7 +175,7 @@ const MLB_DATA = {
         tradeoffs: "Team budgets don't exist on an island. They live inside a complex league economy."
     },
 
-    // Quiz questions for knowledge check
+    // Quiz questions for knowledge check (12 questions; 3 are randomly selected each game)
     quizQuestions: [
         {
             question: "What does CBA stand for?",
@@ -206,6 +206,108 @@ const MLB_DATA = {
             options: ["$100,000", "$500,000", "$750,000", "$1,500,000"],
             correct: 2,
             explanation: "The current MLB minimum is about $750,000 per year."
+        },
+        {
+            question: "What is the 'luxury tax' in MLB?",
+            options: ["A tax fans pay on tickets", "A penalty for teams that exceed a payroll threshold", "A fee networks pay for broadcast rights", "A tax on merchandise sales"],
+            correct: 1,
+            explanation: "Teams that spend above the luxury tax threshold pay a penalty that gets redistributed to smaller-market teams."
+        },
+        {
+            question: "Revenue sharing in MLB primarily benefits which teams?",
+            options: ["Large-market teams", "World Series winners", "Small-market teams", "The commissioner's office"],
+            correct: 2,
+            explanation: "Revenue sharing redistributes money from high-revenue teams to lower-revenue small-market teams to improve competitive balance."
+        },
+        {
+            question: "Which streaming service currently holds Friday Night Baseball rights?",
+            options: ["Netflix", "Amazon Prime Video", "Apple TV+", "Disney+"],
+            correct: 2,
+            explanation: "Apple TV+ acquired Friday Night Baseball rights, marking MLB's move into streaming-exclusive content."
+        },
+        {
+            question: "If a team's payroll is $200M and the luxury tax threshold is $241M, what happens?",
+            options: ["They pay a penalty", "They receive extra revenue sharing", "Nothing, they are under the threshold", "They must cut players"],
+            correct: 2,
+            explanation: "At $200M they are under the $241M threshold, so no luxury tax penalty applies."
+        },
+        {
+            question: "What does 'competitive balance' mean in professional sports?",
+            options: ["Equal number of wins per team", "Fair distribution of talent and revenue so more teams can contend", "All teams having the same payroll", "No team winning back-to-back championships"],
+            correct: 1,
+            explanation: "Competitive balance means more teams have a realistic shot at winning, which keeps fans engaged league-wide."
+        },
+        {
+            question: "If a $9B media deal is split and players get 48%, how much goes to players?",
+            options: ["$3.2B", "$4.32B", "$4.8B", "$5.4B"],
+            correct: 1,
+            explanation: "48% of $9B = $4.32 billion for player salaries over the deal period."
+        },
+        {
+            question: "Why do networks prefer prime-time (8–9 PM) game starts?",
+            options: ["Players perform better at night", "Higher viewership means more ad revenue", "Stadium lights are cheaper to run", "League rules require it"],
+            correct: 1,
+            explanation: "Prime-time slots attract more viewers, which allows networks to charge higher advertising rates."
+        }
+    ],
+
+    // Breaking news events that fire mid-game to shift stakeholder dynamics
+    newsEvents: [
+        {
+            headline: "STRIKE THREAT: Players Union Hardens Stance on Revenue Share",
+            stakeholder: "players",
+            modifier: 10,
+            duration: 60,
+            tip: "Players now need more revenue share to stay satisfied."
+        },
+        {
+            headline: "RATINGS SLUMP: Network Executives Demand Better Time Slots",
+            stakeholder: "networks",
+            modifier: 10,
+            duration: 60,
+            tip: "Networks want earlier, prime-time start times."
+        },
+        {
+            headline: "SMALL MARKETS REVOLT: Fans Demand Competitive Balance Now",
+            stakeholder: "fans",
+            modifier: 10,
+            duration: 60,
+            tip: "Increase revenue sharing to boost fan satisfaction."
+        },
+        {
+            headline: "OWNERS RESIST: Franchise Groups Push Back on Player Costs",
+            stakeholder: "owners",
+            modifier: 10,
+            duration: 60,
+            tip: "Owners want lower player revenue share and higher allocation for themselves."
+        },
+        {
+            headline: "CORD-CUTTING CRISIS: Streaming Demand Surges Among Younger Fans",
+            stakeholder: "networks",
+            modifier: 8,
+            duration: 45,
+            tip: "Networks benefit from a higher streaming percentage right now."
+        },
+        {
+            headline: "SUPERSTAR EXODUS: Players Threaten to Test Free Agent Market Early",
+            stakeholder: "players",
+            modifier: 12,
+            duration: 50,
+            tip: "Boost minimum salary and player allocation to keep the union at the table."
+        },
+        {
+            headline: "STADIUM DEAL PRESSURE: Owners Need Capital for New Ballparks",
+            stakeholder: "owners",
+            modifier: 8,
+            duration: 45,
+            tip: "Owners are asking for a larger share of the media deal allocation."
+        },
+        {
+            headline: "GRASSROOTS CAMPAIGN: Fan Groups Demand Affordable Streaming Access",
+            stakeholder: "fans",
+            modifier: 9,
+            duration: 50,
+            tip: "Fans are happier with more streaming availability right now."
         }
     ]
 };

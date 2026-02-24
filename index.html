@@ -44,9 +44,38 @@
                 </div>
             </div>
 
+            <!-- Difficulty Selector -->
+            <div class="difficulty-selector">
+                <h3 class="difficulty-label">SELECT DIFFICULTY</h3>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn" data-difficulty="easy">
+                        <span class="diff-name">EASY</span>
+                        <span class="diff-desc">7 min &bull; Forgiving thresholds</span>
+                    </button>
+                    <button class="difficulty-btn active" data-difficulty="normal">
+                        <span class="diff-name">NORMAL</span>
+                        <span class="diff-desc">5 min &bull; Standard challenge</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="hard">
+                        <span class="diff-name">HARD</span>
+                        <span class="diff-desc">3 min &bull; High-pressure deal</span>
+                    </button>
+                </div>
+            </div>
+
             <button id="start-btn" class="btn-primary">START NEGOTIATING</button>
 
             <p class="learn-text">Learn how billion-dollar media deals shape professional sports</p>
+        </div>
+    </div>
+
+    <!-- Breaking News Banner (injected into body, shown mid-game) -->
+    <div id="news-banner" class="news-banner" style="display:none;">
+        <div class="news-inner">
+            <span class="news-icon">&#128240;</span>
+            <span class="news-tag">BREAKING</span>
+            <span id="news-headline" class="news-headline">Strike Threat Looms as Talks Stall</span>
+            <button id="news-dismiss" class="news-dismiss">&times;</button>
         </div>
     </div>
 
@@ -71,6 +100,24 @@
                 </div>
             </div>
         </header>
+
+        <!-- Phase Progress Stepper -->
+        <div class="phase-stepper">
+            <div class="step-item active" id="step-1">
+                <div class="step-circle">1</div>
+                <span class="step-label">Allocate</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-item" id="step-2">
+                <div class="step-circle">2</div>
+                <span class="step-label">Negotiate</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-item" id="step-3">
+                <div class="step-circle">3</div>
+                <span class="step-label">Knowledge</span>
+            </div>
+        </div>
 
         <!-- Main Game Area -->
         <main class="game-main">
@@ -211,12 +258,19 @@
                     <p class="phase-instructions">Adjust each slider to fine-tune the deal. Watch how each change affects stakeholders!</p>
 
                     <div class="sliders-container">
-                        <div class="slider-group">
+                        <div class="slider-group" data-sweet-left="35" data-sweet-right="75">
                             <div class="slider-header">
                                 <span class="slider-title">Minimum Player Salary</span>
                                 <span class="slider-value" id="val-salary">$750K</span>
                             </div>
-                            <input type="range" min="400" max="1500" value="750" class="detail-slider" id="detail-salary">
+                            <div class="slider-zone-wrap">
+                                <div class="slider-zones">
+                                    <div class="zone zone-bad" style="width:32%"></div>
+                                    <div class="zone zone-ok" style="width:36%"></div>
+                                    <div class="zone zone-good" style="width:32%"></div>
+                                </div>
+                                <input type="range" min="400" max="1500" value="750" class="detail-slider" id="detail-salary">
+                            </div>
                             <div class="slider-labels">
                                 <span>$400K</span>
                                 <span class="current-label">Current: $750K</span>
@@ -225,12 +279,20 @@
                             <p class="slider-impact" id="impact-salary">Affects player satisfaction and team payrolls</p>
                         </div>
 
-                        <div class="slider-group">
+                        <div class="slider-group" data-sweet-left="30" data-sweet-right="65">
                             <div class="slider-header">
                                 <span class="slider-title">Revenue Sharing %</span>
                                 <span class="slider-value" id="val-sharing">35%</span>
                             </div>
-                            <input type="range" min="10" max="60" value="35" class="detail-slider" id="detail-sharing">
+                            <div class="slider-zone-wrap">
+                                <div class="slider-zones">
+                                    <div class="zone zone-bad" style="width:20%"></div>
+                                    <div class="zone zone-ok" style="width:30%"></div>
+                                    <div class="zone zone-good" style="width:30%"></div>
+                                    <div class="zone zone-ok" style="width:20%"></div>
+                                </div>
+                                <input type="range" min="10" max="60" value="35" class="detail-slider" id="detail-sharing">
+                            </div>
                             <div class="slider-labels">
                                 <span>10%</span>
                                 <span class="current-label">Current: ~35%</span>
@@ -244,7 +306,15 @@
                                 <span class="slider-title">Prime Time Game Start</span>
                                 <span class="slider-value" id="val-gametime">8:00 PM</span>
                             </div>
-                            <input type="range" min="7" max="11" value="8" step="0.5" class="detail-slider" id="detail-gametime">
+                            <div class="slider-zone-wrap">
+                                <div class="slider-zones">
+                                    <div class="zone zone-ok" style="width:25%"></div>
+                                    <div class="zone zone-good" style="width:37%"></div>
+                                    <div class="zone zone-ok" style="width:25%"></div>
+                                    <div class="zone zone-bad" style="width:13%"></div>
+                                </div>
+                                <input type="range" min="7" max="11" value="8" step="0.5" class="detail-slider" id="detail-gametime">
+                            </div>
                             <div class="slider-labels">
                                 <span>7 PM</span>
                                 <span class="current-label">East Coast</span>
@@ -258,7 +328,15 @@
                                 <span class="slider-title">Streaming Exclusives</span>
                                 <span class="slider-value" id="val-streaming">25%</span>
                             </div>
-                            <input type="range" min="0" max="100" value="25" class="detail-slider" id="detail-streaming">
+                            <div class="slider-zone-wrap">
+                                <div class="slider-zones">
+                                    <div class="zone zone-ok" style="width:15%"></div>
+                                    <div class="zone zone-good" style="width:30%"></div>
+                                    <div class="zone zone-ok" style="width:30%"></div>
+                                    <div class="zone zone-bad" style="width:25%"></div>
+                                </div>
+                                <input type="range" min="0" max="100" value="25" class="detail-slider" id="detail-streaming">
+                            </div>
                             <div class="slider-labels">
                                 <span>0%</span>
                                 <span class="current-label">% of games streaming-only</span>
@@ -272,7 +350,15 @@
                                 <span class="slider-title">Player Revenue Share</span>
                                 <span class="slider-value" id="val-playershare">48%</span>
                             </div>
-                            <input type="range" min="40" max="60" value="48" class="detail-slider" id="detail-playershare">
+                            <div class="slider-zone-wrap">
+                                <div class="slider-zones">
+                                    <div class="zone zone-bad" style="width:20%"></div>
+                                    <div class="zone zone-ok" style="width:25%"></div>
+                                    <div class="zone zone-good" style="width:35%"></div>
+                                    <div class="zone zone-ok" style="width:20%"></div>
+                                </div>
+                                <input type="range" min="40" max="60" value="48" class="detail-slider" id="detail-playershare">
+                            </div>
                             <div class="slider-labels">
                                 <span>40%</span>
                                 <span class="current-label">Current: 48.5%</span>
@@ -282,10 +368,10 @@
                         </div>
                     </div>
 
-                    <button id="phase2-next" class="btn-primary">CONTINUE TO MINI-GAMES</button>
+                    <button id="phase2-next" class="btn-primary">CONTINUE TO KNOWLEDGE CHECK</button>
                 </div>
 
-                <!-- Phase 3: Mini-Games -->
+                <!-- Phase 3: Mini-Games / Knowledge Check -->
                 <div id="phase-minigames" class="game-phase">
                     <h2>PHASE 3: Prove Your Knowledge</h2>
                     <p class="phase-instructions">Complete these challenges to earn bonus points with stakeholders!</p>
@@ -305,18 +391,18 @@
                             <span class="mg-status">NOT PLAYED</span>
                         </div>
 
-                        <div class="minigame-card" id="mg-teams" data-game="teams">
+                        <div class="minigame-card playable" id="mg-teams" data-game="teams">
                             <div class="mg-icon">&#127942;</div>
                             <h3>Team Market Quiz</h3>
-                            <p>Sort teams by market size</p>
-                            <span class="mg-status">NOT PLAYED</span>
+                            <p>Sort teams by market size — quickly!</p>
+                            <span class="mg-status">PLAY NOW</span>
                         </div>
 
-                        <div class="minigame-card" id="mg-calc" data-game="calc">
+                        <div class="minigame-card playable" id="mg-calc" data-game="calc">
                             <div class="mg-icon">&#129518;</div>
                             <h3>Salary Cap Calculator</h3>
                             <p>Calculate the salary cap from revenue</p>
-                            <span class="mg-status">NOT PLAYED</span>
+                            <span class="mg-status">PLAY NOW</span>
                         </div>
                     </div>
 
@@ -361,6 +447,14 @@
                         <p><strong>Teams:</strong> 30 franchises</p>
                     </div>
                 </div>
+
+                <!-- Strategy Tips Panel -->
+                <details class="metric-card strategy-tips-card" id="strategy-tips-card" open>
+                    <summary><h4>&#128161; Strategy Tips</h4></summary>
+                    <div id="strategy-tips-content">
+                        <p class="tip-item">Allocate money to all four groups before proceeding.</p>
+                    </div>
+                </details>
             </aside>
         </main>
     </div>
@@ -370,7 +464,7 @@
         <div class="minigame-container">
             <button class="close-minigame" id="close-minigame">&times;</button>
 
-            <!-- Salary Match Game -->
+            <!-- Salary Match Game (placeholder) -->
             <div id="game-salary" class="minigame-content">
                 <h2>Player Salary Match</h2>
                 <p>Drag the correct salary to each player!</p>
@@ -382,7 +476,7 @@
                 <div class="minigame-score">Score: <span id="salary-score">0</span>/5</div>
             </div>
 
-            <!-- Network Click Game -->
+            <!-- Network Click Game (placeholder) -->
             <div id="game-network" class="minigame-content">
                 <h2>Network Speed Click</h2>
                 <p>Click the network logos in the order they appear!</p>
@@ -391,36 +485,42 @@
                 <div class="minigame-score">Clicks: <span id="network-score">0</span></div>
             </div>
 
-            <!-- Team Market Quiz -->
+            <!-- Team Market Quiz (IMPLEMENTED) -->
             <div id="game-teams" class="minigame-content">
-                <h2>Team Market Quiz</h2>
+                <h2>&#127942; Team Market Quiz</h2>
                 <p>Is this team BIG market or SMALL market?</p>
-                <div class="timer-bar" id="teams-timer"><div class="timer-fill"></div></div>
+                <div class="timer-bar" id="teams-timer"><div class="timer-fill" id="teams-timer-fill"></div></div>
                 <div class="teams-game-area">
                     <div class="team-display" id="team-display">
-                        <div class="team-logo" id="quiz-team-logo"></div>
-                        <div class="team-name" id="quiz-team-name">Yankees</div>
+                        <div class="team-badge" id="quiz-team-badge">
+                            <span id="quiz-team-abbr">NYY</span>
+                        </div>
+                        <div class="team-name" id="quiz-team-name">New York Yankees</div>
+                        <div class="team-market-hint" id="quiz-team-hint">Revenue: $668M/year</div>
                     </div>
                     <div class="market-buttons">
-                        <button class="market-btn" id="btn-big">BIG MARKET</button>
-                        <button class="market-btn" id="btn-small">SMALL MARKET</button>
+                        <button class="market-btn market-big" id="btn-big">&#127968; BIG MARKET</button>
+                        <button class="market-btn market-small" id="btn-small">&#127800; SMALL MARKET</button>
                     </div>
+                    <div class="team-quiz-feedback" id="team-quiz-feedback"></div>
                 </div>
-                <div class="minigame-score">Score: <span id="teams-score">0</span>/10</div>
+                <div class="minigame-score">Score: <span id="teams-score">0</span>/10 &nbsp;|&nbsp; Question: <span id="teams-question">1</span>/10</div>
             </div>
 
-            <!-- Salary Cap Calculator -->
+            <!-- Salary Cap Calculator (IMPLEMENTED) -->
             <div id="game-calc" class="minigame-content">
-                <h2>Salary Cap Calculator</h2>
-                <p>Calculate: If league revenue is shown, what's the salary cap at 50%?</p>
+                <h2>&#129518; Salary Cap Calculator</h2>
+                <p>Calculate how much goes to players at the given share %</p>
+                <div class="timer-bar" id="calc-timer"><div class="timer-fill" id="calc-timer-fill"></div></div>
                 <div class="calc-game-area">
                     <div class="calc-problem" id="calc-problem">
-                        <span class="calc-revenue">League Revenue: $10B</span>
-                        <span class="calc-question">Player Share (50%) = ?</span>
+                        <div class="calc-revenue">League Revenue: <strong id="calc-revenue-val">$10B</strong></div>
+                        <div class="calc-question">Player Share (<strong id="calc-share-val">50%</strong>) = ?</div>
                     </div>
                     <div class="calc-options" id="calc-options"></div>
+                    <div class="calc-feedback" id="calc-feedback"></div>
                 </div>
-                <div class="minigame-score">Score: <span id="calc-score">0</span>/3</div>
+                <div class="minigame-score">Score: <span id="calc-score">0</span>/5 &nbsp;|&nbsp; Question: <span id="calc-question">1</span>/5</div>
             </div>
 
             <!-- Mini-game Results -->
@@ -435,6 +535,15 @@
 
     <!-- RESULTS SCREEN -->
     <div id="results-screen" class="screen">
+        <!-- Gold tier confetti particles -->
+        <div id="confetti-container" class="confetti-container" style="display:none;">
+            <div class="confetti-piece"></div><div class="confetti-piece"></div>
+            <div class="confetti-piece"></div><div class="confetti-piece"></div>
+            <div class="confetti-piece"></div><div class="confetti-piece"></div>
+            <div class="confetti-piece"></div><div class="confetti-piece"></div>
+            <div class="confetti-piece"></div><div class="confetti-piece"></div>
+            <div class="confetti-piece"></div><div class="confetti-piece"></div>
+        </div>
         <div class="results-content">
             <div class="branding">
                 <div class="bow-logo">BOW SPORTS CAPITAL</div>
@@ -443,8 +552,10 @@
             <div id="results-success" class="results-outcome">
                 <h1 id="result-title">DEAL COMPLETE!</h1>
                 <div class="result-grade" id="result-grade">
-                    <span class="grade-tier" id="grade-tier">GOLD</span>
-                    <span class="grade-score" id="grade-score">95%</span>
+                    <div class="grade-badge" id="grade-badge">
+                        <span class="grade-tier" id="grade-tier">GOLD</span>
+                    </div>
+                    <span class="grade-score" id="grade-score">95<span class="grade-pct">%</span></span>
                 </div>
 
                 <div class="final-stats">
@@ -467,7 +578,7 @@
                 </div>
 
                 <div class="result-narrative" id="result-narrative">
-                    Your balanced approach created a deal everyone can live with. The new media contract will bring unprecedented revenue to MLB while maintaining competitive balance across all 30 teams.
+                    Your balanced approach created a deal everyone can live with.
                 </div>
 
                 <div class="claim-code-section">
@@ -477,12 +588,32 @@
                     </div>
                     <p class="claim-instructions">SCREENSHOT THIS CODE TO SUBMIT!</p>
                 </div>
+
+                <button id="try-again-success-btn" class="btn-secondary">TRY AGAIN</button>
             </div>
 
             <div id="results-failed" class="results-outcome" style="display: none;">
                 <h1>DEAL COLLAPSED!</h1>
                 <div class="fail-icon">&#128557;</div>
                 <p class="fail-message" id="fail-message">The Players Union walked away from the table. Your offer wasn't fair enough.</p>
+                <div class="fail-stats">
+                    <div class="final-stat">
+                        <span class="stat-label">Players</span>
+                        <span class="stat-value" id="fail-players">--</span>
+                    </div>
+                    <div class="final-stat">
+                        <span class="stat-label">Owners</span>
+                        <span class="stat-value" id="fail-owners">--</span>
+                    </div>
+                    <div class="final-stat">
+                        <span class="stat-label">Networks</span>
+                        <span class="stat-value" id="fail-networks">--</span>
+                    </div>
+                    <div class="final-stat">
+                        <span class="stat-label">Fans</span>
+                        <span class="stat-value" id="fail-fans">--</span>
+                    </div>
+                </div>
                 <button id="try-again-btn" class="btn-primary">TRY AGAIN</button>
             </div>
 
