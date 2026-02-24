@@ -1,413 +1,358 @@
 /**
- * MLB Money Maker - Interactions
- * Handles slider, button, and allocation interactions
+ * MLB Money Maker - Interactions v2
+ * Event handlers, phase transitions, pie chart, slider setup
  * BOW Sports Capital Presents
  */
 
 const Interactions = {
-    // Initialize all event listeners
+    gameState: null,
+    updateCallback: null,
+
     init(gameState, updateCallback) {
-        this.gameState = gameState;
-        this.updateCallback = updateCallback;
+        this.gameState       = gameState;
+        this.updateCallback  = updateCallback;
 
         this.setupAllocationControls();
         this.setupDetailSliders();
         this.setupNavigationButtons();
+        this.setupMinigameButtons();
+
+        // Sync slider UI to current state defaults
+        this.updateAllocationDisplay();
     },
 
-    // Setup allocation bucket controls (Phase 1)
-    setupAllocationControls() {
-        const buckets = ['players', 'owners', 'networks', 'league'];
+    // ---- Phase 1: Money Allocation ----------------------------------------
 
-        buckets.forEach(bucket => {
-            const slider = document.getElementById(`slider-${bucket}`);
-            const plusBtn = document.querySelector(`[data-action="plus"][data-target="${bucket}"]`);
-            const minusBtn = document.querySelector(`[data-action="minus"][data-target="${bucket}"]`);
+    setupAllocationControls() {
+        var self    = this;
+        var buckets = ['players', 'owners', 'networks', 'league'];
+
+        buckets.forEach(function(bucket) {
+            var slider   = document.getElementById('slider-' + bucket);
+            var plusBtn  = document.querySelector('[data-action="plus"][data-target="' + bucket + '"]');
+            var minusBtn = document.querySelector('[data-action="minus"][data-target="' + bucket + '"]');
 
             if (slider) {
-                slider.addEventListener('input', (e) => {
-                    this.handleAllocationChange(bucket, parseFloat(e.target.value) / 10);
+                slider.addEventListener('input', function(e) {
+                    self.handleAllocationChange(bucket, parseFloat(e.target.value) / 10);
                 });
             }
-
             if (plusBtn) {
-                plusBtn.addEventListener('click', () => {
-                    const current = this.gameState.allocation[bucket];
-                    this.handleAllocationChange(bucket, Math.min(8, current + 0.5));
+                plusBtn.addEventListener('click', function() {
+                    self.handleAllocationChange(bucket, Math.min(8, self.gameState.allocation[bucket] + 0.5));
                 });
             }
-
             if (minusBtn) {
-                minusBtn.addEventListener('click', () => {
-                    const current = this.gameState.allocation[bucket];
-                    this.handleAllocationChange(bucket, Math.max(0, current - 0.5));
+                minusBtn.addEventListener('click', function() {
+                    self.handleAllocationChange(bucket, Math.max(0, self.gameState.allocation[bucket] - 0.5));
                 });
             }
         });
     },
 
-    // Handle allocation changes
     handleAllocationChange(bucket, value) {
-        const total = Object.values(this.gameState.allocation).reduce((a, b) => a + b, 0);
-        const currentValue = this.gameState.allocation[bucket];
-        const otherTotal = total - currentValue;
+        var total        = Object.values(this.gameState.allocation).reduce(function(a, b) { return a + b; }, 0);
+        var currentValue = this.gameState.allocation[bucket];
+        var otherTotal   = total - currentValue;
 
-        // Check if we can add more (total must not exceed 8)
-        if (otherTotal + value > 8) {
-            value = 8 - otherTotal;
-        }
-
+        if (otherTotal + value > 8) value = 8 - otherTotal;
         this.gameState.allocation[bucket] = Math.round(value * 10) / 10;
 
-        // Update slider to match
-        const slider = document.getElementById(`slider-${bucket}`);
-        if (slider) {
-            slider.value = this.gameState.allocation[bucket] * 10;
-        }
+        var slider = document.getElementById('slider-' + bucket);
+        if (slider) slider.value = this.gameState.allocation[bucket] * 10;
 
-        // Update display
         this.updateAllocationDisplay();
-
-        // Trigger callback
-        if (this.updateCallback) {
-            this.updateCallback();
-        }
+        if (this.updateCallback) this.updateCallback();
     },
 
-    // Update allocation display
     updateAllocationDisplay() {
-        const buckets = ['players', 'owners', 'networks', 'league'];
+        var self    = this;
+        var buckets = ['players', 'owners', 'networks', 'league'];
 
-        buckets.forEach(bucket => {
-            const amountEl = document.getElementById(`amount-${bucket}`);
-            if (amountEl) {
-                amountEl.textContent = `$${this.gameState.allocation[bucket].toFixed(1)}B`;
-            }
+        buckets.forEach(function(bucket) {
+            var amountEl = document.getElementById('amount-' + bucket);
+            if (amountEl) amountEl.textContent = '$' + (self.gameState.allocation[bucket] || 0).toFixed(1) + 'B';
         });
 
-        // Update remaining money display
-        const remaining = Calculations.getRemainingMoney(this.gameState.allocation);
-        const remainingEl = document.getElementById('remaining-money');
-        if (remainingEl) {
-            remainingEl.textContent = `$${remaining.toFixed(1)}B`;
-        }
+        var remaining   = Calculations.getRemainingMoney(this.gameState.allocation);
+        var remainingEl = document.getElementById('remaining-money');
+        if (remainingEl) remainingEl.textContent = '$' + remaining.toFixed(1) + 'B';
 
-        // Update pie chart
         this.updatePieChart();
 
-        // Enable/disable next button based on allocation
-        const nextBtn = document.getElementById('phase1-next');
+        var nextBtn = document.getElementById('phase1-next');
         if (nextBtn) {
-            const isValid = remaining < 0.1; // Allow small floating point errors
+            var isValid = remaining < 0.1;
             nextBtn.disabled = !isValid;
-            if (isValid) {
-                nextBtn.textContent = 'LOCK IN ALLOCATION';
-            } else {
-                nextBtn.textContent = `ALLOCATE $${remaining.toFixed(1)}B MORE`;
-            }
+            nextBtn.textContent = isValid ? 'LOCK IN ALLOCATION' : 'ALLOCATE $' + remaining.toFixed(1) + 'B MORE';
         }
     },
 
-    // Update pie chart visualization
     updatePieChart() {
-        const canvas = document.getElementById('pie-canvas');
+        var canvas = document.getElementById('pie-canvas');
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = 80;
+        var ctx     = canvas.getContext('2d');
+        var cx      = canvas.width  / 2;
+        var cy      = canvas.height / 2;
+        var radius  = 80;
 
-        // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const allocations = [
-            { key: 'players', color: '#002B5C', value: this.gameState.allocation.players },
-            { key: 'owners', color: '#CE1141', value: this.gameState.allocation.owners },
+        var allocations = [
+            { key: 'players',  color: '#002B5C', value: this.gameState.allocation.players  },
+            { key: 'owners',   color: '#CE1141', value: this.gameState.allocation.owners   },
             { key: 'networks', color: '#28A745', value: this.gameState.allocation.networks },
-            { key: 'league', color: '#FFC107', value: this.gameState.allocation.league }
+            { key: 'league',   color: '#FFC107', value: this.gameState.allocation.league   }
         ];
 
-        const total = allocations.reduce((sum, a) => sum + a.value, 0);
-        let startAngle = -Math.PI / 2; // Start from top
-
-        allocations.forEach(allocation => {
-            if (allocation.value > 0) {
-                const sliceAngle = (allocation.value / 8) * 2 * Math.PI;
-
+        var startAngle = -Math.PI / 2;
+        allocations.forEach(function(a) {
+            if (a.value > 0) {
+                var sliceAngle = (a.value / 8) * 2 * Math.PI;
                 ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
                 ctx.closePath();
-                ctx.fillStyle = allocation.color;
+                ctx.fillStyle = a.color;
                 ctx.fill();
-
                 startAngle += sliceAngle;
             }
         });
 
-        // Draw remaining (unallocated) as gray
-        const remaining = 8 - total;
+        // Unallocated slice
+        var remaining = Calculations.getRemainingMoney(this.gameState.allocation);
         if (remaining > 0) {
-            const sliceAngle = (remaining / 8) * 2 * Math.PI;
+            var remAngle = (remaining / 8) * 2 * Math.PI;
             ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, startAngle, startAngle + remAngle);
             ctx.closePath();
             ctx.fillStyle = '#e0e0e0';
             ctx.fill();
         }
 
-        // Draw center circle (donut hole)
+        // Donut hole
         ctx.beginPath();
-        ctx.arc(centerX, centerY, 50, 0, 2 * Math.PI);
+        ctx.arc(cx, cy, 50, 0, 2 * Math.PI);
         ctx.fillStyle = 'white';
         ctx.fill();
     },
 
-    // Setup detail sliders (Phase 2)
+    // ---- Phase 2: Detail Sliders ------------------------------------------
+
     setupDetailSliders() {
-        const sliders = [
-            { id: 'detail-salary', key: 'salary', format: (v) => `$${v}K` },
-            { id: 'detail-sharing', key: 'sharing', format: (v) => `${v}%` },
-            { id: 'detail-gametime', key: 'gametime', format: (v) => this.formatTime(v) },
-            { id: 'detail-streaming', key: 'streaming', format: (v) => `${v}%` },
-            { id: 'detail-playershare', key: 'playershare', format: (v) => `${v}%` }
+        var self    = this;
+        var sliders = [
+            { id: 'detail-salary',      key: 'salary',      format: function(v) { return '$' + v + 'K'; } },
+            { id: 'detail-sharing',     key: 'sharing',     format: function(v) { return v + '%'; } },
+            { id: 'detail-gametime',    key: 'gametime',    format: function(v) { return self.formatTime(v); } },
+            { id: 'detail-streaming',   key: 'streaming',   format: function(v) { return v + '%'; } },
+            { id: 'detail-playershare', key: 'playershare', format: function(v) { return v + '%'; } }
         ];
 
-        sliders.forEach(slider => {
-            const el = document.getElementById(slider.id);
-            if (el) {
-                el.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    this.gameState.sliders[slider.key] = value;
+        sliders.forEach(function(slider) {
+            var el = document.getElementById(slider.id);
+            if (!el) return;
 
-                    // Update value display
-                    const valueEl = document.getElementById(`val-${slider.key}`);
-                    if (valueEl) {
-                        valueEl.textContent = slider.format(value);
-                    }
+            el.value = self.gameState.sliders[slider.key];
 
-                    // Update impact text
-                    this.updateSliderImpact(slider.key, value);
+            var valueEl = document.getElementById('val-' + slider.key);
+            if (valueEl) valueEl.textContent = slider.format(self.gameState.sliders[slider.key]);
 
-                    // Trigger callback
-                    if (this.updateCallback) {
-                        this.updateCallback();
-                    }
-                });
+            el.addEventListener('input', function(e) {
+                var value = parseFloat(e.target.value);
+                self.gameState.sliders[slider.key] = value;
 
-                // Set initial value
-                el.value = this.gameState.sliders[slider.key];
-                const valueEl = document.getElementById(`val-${slider.key}`);
-                if (valueEl) {
-                    valueEl.textContent = slider.format(this.gameState.sliders[slider.key]);
-                }
-            }
+                if (valueEl) valueEl.textContent = slider.format(value);
+                self.updateSliderImpact(slider.key, value);
+                if (self.updateCallback) self.updateCallback();
+            });
         });
     },
 
-    // Format time value
     formatTime(value) {
-        const hour = Math.floor(value);
-        const minutes = (value % 1) * 60;
-        const suffix = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour > 12 ? hour - 12 : hour;
-        return `${displayHour}:${minutes === 0 ? '00' : '30'} ${suffix}`;
+        var hour    = Math.floor(value);
+        var minutes = (value % 1) * 60;
+        var suffix  = hour >= 12 ? 'PM' : 'AM';
+        var display = hour > 12 ? hour - 12 : hour;
+        return display + ':' + (minutes === 0 ? '00' : '30') + ' ' + suffix;
     },
 
-    // Update slider impact text based on value
     updateSliderImpact(key, value) {
-        const impactEl = document.getElementById(`impact-${key}`);
+        var impactEl = document.getElementById('impact-' + key);
         if (!impactEl) return;
 
-        const impacts = {
-            salary: () => {
-                if (value >= 1200) return "High minimum! Small-market teams struggle to afford rosters.";
-                if (value >= 900) return "Good for players, but raises team costs.";
-                if (value >= 600) return "Reasonable minimum that most teams can handle.";
-                return "Low minimum saves teams money but hurts players.";
+        var impacts = {
+            salary: function() {
+                if (value >= 1200) return 'High minimum! Small-market teams struggle to afford rosters.';
+                if (value >= 900)  return 'Good for players, but raises team costs.';
+                if (value >= 600)  return 'Reasonable minimum that most teams can handle.';
+                return 'Low minimum saves teams money but hurts players.';
             },
-            sharing: () => {
-                if (value >= 50) return "Great balance! Small markets can compete.";
-                if (value >= 35) return "Moderate sharing helps smaller teams.";
-                if (value >= 20) return "Limited sharing favors big-market teams.";
-                return "Minimal sharing creates huge competitive imbalance.";
+            sharing: function() {
+                if (value >= 50) return 'Great balance! Small markets can compete.';
+                if (value >= 35) return 'Moderate sharing helps smaller teams.';
+                if (value >= 20) return 'Limited sharing favors big-market teams.';
+                return 'Minimal sharing creates huge competitive imbalance.';
             },
-            gametime: () => {
-                if (value >= 10) return "Very late! Poor for East Coast fans and player rest.";
-                if (value >= 9) return "Good for West Coast, challenging for families.";
-                if (value >= 8) return "Prime time - networks love it!";
-                return "Early start - great for families, less ad revenue.";
+            gametime: function() {
+                if (value >= 10)  return 'Very late! Poor for East Coast fans and player rest.';
+                if (value >= 9)   return 'Good for West Coast, challenging for families.';
+                if (value >= 8)   return 'Prime time — networks love it!';
+                return 'Early start — great for families, less ad revenue.';
             },
-            streaming: () => {
-                if (value >= 75) return "Almost all streaming! Older fans can't watch easily.";
-                if (value >= 50) return "Heavy streaming presence, cable viewers frustrated.";
-                if (value >= 25) return "Balanced mix of traditional and streaming.";
-                return "Mostly traditional TV - misses younger viewers.";
+            streaming: function() {
+                if (value >= 75) return 'Almost all streaming! Older fans can\'t watch easily.';
+                if (value >= 50) return 'Heavy streaming presence, cable viewers frustrated.';
+                if (value >= 25) return 'Balanced mix of traditional and streaming.';
+                return 'Mostly traditional TV — misses younger viewers.';
             },
-            playershare: () => {
-                if (value >= 55) return "Generous to players! Owners unhappy with profits.";
-                if (value >= 48) return "Fair split near current CBA terms.";
-                if (value >= 44) return "Below current share - players concerned.";
-                return "Low share! Players union will fight this.";
+            playershare: function() {
+                if (value >= 55) return 'Generous to players! Owners unhappy with profits.';
+                if (value >= 48) return 'Fair split near current CBA terms.';
+                if (value >= 44) return 'Below current share — players concerned.';
+                return 'Low share! Players union will fight this.';
             }
         };
 
-        impactEl.textContent = impacts[key]();
+        if (impacts[key]) impactEl.textContent = impacts[key]();
     },
 
-    // Setup navigation buttons
+    // ---- Phase Navigation -------------------------------------------------
+
     setupNavigationButtons() {
-        // Phase 1 to Phase 2
-        const phase1Next = document.getElementById('phase1-next');
+        var self = this;
+
+        // Phase 1 → Phase 2
+        var phase1Next = document.getElementById('phase1-next');
         if (phase1Next) {
-            phase1Next.addEventListener('click', () => {
-                document.getElementById('phase-money').classList.remove('active');
-                document.getElementById('phase-sliders').classList.add('active');
+            phase1Next.addEventListener('click', function() {
+                self.transitionPhase('phase-money', 'phase-sliders');
+                UI.updateStepper('phase-sliders');
             });
         }
 
-        // Phase 2 to Phase 3 (Quiz)
-        const phase2Next = document.getElementById('phase2-next');
+        // Phase 2 → Phase 3
+        var phase2Next = document.getElementById('phase2-next');
         if (phase2Next) {
-            phase2Next.addEventListener('click', () => {
-                document.getElementById('phase-sliders').classList.remove('active');
-                document.getElementById('phase-minigames').classList.add('active');
-                this.setupQuiz();
+            phase2Next.addEventListener('click', function() {
+                self.transitionPhase('phase-sliders', 'phase-minigames');
+                UI.updateStepper('phase-minigames');
+                self.setupQuiz();
             });
         }
 
-        // Phase 3 to Results
-        const phase3Next = document.getElementById('phase3-next');
+        // Phase 3 → Results
+        var phase3Next = document.getElementById('phase3-next');
         if (phase3Next) {
-            phase3Next.addEventListener('click', () => {
-                // Show results
+            phase3Next.addEventListener('click', function() {
                 Game.showResults();
             });
         }
 
-        // Try again button
-        const tryAgainBtn = document.getElementById('try-again-btn');
-        if (tryAgainBtn) {
-            tryAgainBtn.addEventListener('click', () => {
-                Game.restart();
-            });
-        }
+        // Close mini-game overlay
+        var closeBtn = document.getElementById('close-minigame');
+        if (closeBtn) closeBtn.addEventListener('click', function() { self.closeMinigame(); });
 
-        // Mini-game card buttons
-        const minigameCards = document.querySelectorAll('.minigame-card');
-        minigameCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const gameType = card.dataset.game;
-                this.openMinigame(gameType);
-            });
+        var mgContinue = document.getElementById('mg-continue');
+        if (mgContinue) mgContinue.addEventListener('click', function() { self.closeMinigame(); });
+    },
+
+    // Animated transition between two phase divs
+    transitionPhase(fromId, toId) {
+        var fromEl = document.getElementById(fromId);
+        var toEl   = document.getElementById(toId);
+        if (!fromEl || !toEl) return;
+
+        var self = this;
+        fromEl.classList.add('phase-leaving');
+
+        setTimeout(function() {
+            fromEl.classList.remove('active', 'phase-leaving');
+            toEl.classList.add('active', 'phase-entering');
+            setTimeout(function() {
+                toEl.classList.remove('phase-entering');
+            }, 350);
+        }, 250);
+    },
+
+    // Inject the knowledge-check quiz into Phase 3
+    setupQuiz() {
+        var phaseDiv = document.getElementById('phase-minigames');
+        if (!phaseDiv) return;
+
+        var existing = phaseDiv.querySelector('.knowledge-check');
+        if (existing) existing.remove();
+
+        var quizContainer     = document.createElement('div');
+        quizContainer.className = 'knowledge-check';
+        quizContainer.innerHTML = '<h3 style="margin-bottom:15px;color:#002B5C;">Quick Knowledge Check</h3>';
+
+        KnowledgeCheck.init();
+        var questions = KnowledgeCheck.getQuestions();
+        var self      = this;
+
+        questions.forEach(function(q, i) {
+            KnowledgeCheck.renderQuestion(q, i, quizContainer);
         });
 
-        // Close mini-game overlay button
-        const closeMinigameBtn = document.getElementById('close-minigame');
-        if (closeMinigameBtn) {
-            closeMinigameBtn.addEventListener('click', () => {
-                this.closeMinigame();
+        var nextBtn = document.getElementById('phase3-next');
+        phaseDiv.insertBefore(quizContainer, nextBtn);
+
+        quizContainer.querySelectorAll('.quiz-option').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                var qIdx = parseInt(e.target.dataset.question);
+                var oIdx = parseInt(e.target.dataset.option);
+                KnowledgeCheck.handleAnswer(qIdx, oIdx, questions);
+                self.gameState.quizScore = KnowledgeCheck.score;
             });
+        });
+    },
+
+    // ---- Mini-game overlay ------------------------------------------------
+
+    setupMinigameButtons() {
+        var self = this;
+
+        // Only wire up the two playable cards
+        var teamsCard = document.getElementById('mg-teams');
+        if (teamsCard) {
+            teamsCard.addEventListener('click', function() { self.openMinigame('teams'); });
         }
 
-        // Mini-game continue button
-        const mgContinueBtn = document.getElementById('mg-continue');
-        if (mgContinueBtn) {
-            mgContinueBtn.addEventListener('click', () => {
-                this.closeMinigame();
-            });
+        var calcCard = document.getElementById('mg-calc');
+        if (calcCard) {
+            calcCard.addEventListener('click', function() { self.openMinigame('calc'); });
         }
     },
 
-    // Setup quiz in Phase 3
-    setupQuiz() {
-        const container = document.querySelector('#phase-minigames .minigame-selector');
-        if (!container) {
-            // Create quiz container if minigame selector is hidden
-            const phaseDiv = document.getElementById('phase-minigames');
-            const existingQuiz = phaseDiv.querySelector('.knowledge-check');
-            if (existingQuiz) existingQuiz.remove();
-
-            const quizContainer = document.createElement('div');
-            quizContainer.className = 'knowledge-check';
-            quizContainer.innerHTML = '<h3 style="margin-bottom: 15px; color: #002B5C;">Quick Knowledge Check</h3>';
-
-            // Get questions
-            KnowledgeCheck.init();
-            const questions = KnowledgeCheck.getQuestions();
-
-            // Render questions
-            questions.forEach((q, i) => {
-                KnowledgeCheck.renderQuestion(q, i, quizContainer);
-            });
-
-            // Insert before the button
-            const nextBtn = document.getElementById('phase3-next');
-            phaseDiv.insertBefore(quizContainer, nextBtn);
-
-            // Add click handlers
-            quizContainer.querySelectorAll('.quiz-option').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const qIndex = parseInt(e.target.dataset.question);
-                    const oIndex = parseInt(e.target.dataset.option);
-                    KnowledgeCheck.handleAnswer(qIndex, oIndex, questions);
-
-                    // Store score in game state
-                    this.gameState.quizScore = KnowledgeCheck.score;
-                });
-            });
-        }
-    },
-
-    // Open mini-game overlay
     openMinigame(gameType) {
-        const overlay = document.getElementById('minigame-overlay');
+        var overlay = document.getElementById('minigame-overlay');
         if (!overlay) return;
 
-        // Hide all mini-game content
-        document.querySelectorAll('.minigame-content').forEach(content => {
-            content.classList.remove('active');
-        });
+        document.querySelectorAll('.minigame-content').forEach(function(c) { c.classList.remove('active'); });
 
-        // Show the selected mini-game
-        const gameContent = document.getElementById(`game-${gameType}`);
-        if (gameContent) {
-            gameContent.classList.add('active');
-        }
+        var gameContent = document.getElementById('game-' + gameType);
+        if (gameContent) gameContent.classList.add('active');
 
-        // Show overlay
         overlay.classList.add('active');
 
-        // Mark the mini-game card as played
-        const card = document.querySelector(`.minigame-card[data-game="${gameType}"]`);
-        if (card) {
-            const statusEl = card.querySelector('.mg-status');
-            if (statusEl) {
-                statusEl.textContent = 'PLAYED';
-                statusEl.style.color = '#28A745';
-            }
+        // Start the actual game logic
+        if (gameType === 'teams') {
+            TeamQuiz.start();
+        } else if (gameType === 'calc') {
+            CalcGame.start();
         }
-
-        console.log(`Opening mini-game: ${gameType}`);
     },
 
-    // Close mini-game overlay
     closeMinigame() {
-        const overlay = document.getElementById('minigame-overlay');
-        if (overlay) {
-            overlay.classList.remove('active');
-        }
-
-        // Hide all mini-game content
-        document.querySelectorAll('.minigame-content').forEach(content => {
-            content.classList.remove('active');
-        });
+        var overlay = document.getElementById('minigame-overlay');
+        if (overlay) overlay.classList.remove('active');
+        document.querySelectorAll('.minigame-content').forEach(function(c) { c.classList.remove('active'); });
     }
 };
 
-// Export for module use (if needed)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Interactions;
 }

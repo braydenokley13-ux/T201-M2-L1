@@ -1,205 +1,225 @@
 /**
- * MLB Money Maker - Calculations
- * Handles all satisfaction scoring and deal stability
+ * MLB Money Maker - Calculations v2
+ * Satisfaction scoring, conflict detection, diminishing returns
  * BOW Sports Capital Presents
  */
 
 const Calculations = {
-    // Total deal amount in billions
     TOTAL_DEAL: 8.0,
 
-    // Calculate satisfaction based on money allocation and sliders
+    // Diminishing returns curve applied to bonus/penalty terms.
+    // strength < 1 flattens extreme values so one slider can't dominate the score.
+    diminishingReturns(x, strength) {
+        if (strength === undefined) strength = 0.7;
+        if (x === 0) return 0;
+        var sign = x > 0 ? 1 : -1;
+        return sign * Math.pow(Math.abs(x) / 100, strength) * 100;
+    },
+
+    // Map a value from one range to another (linear, no clamping at source)
+    mapRange(value, inMin, inMax, outMin, outMax) {
+        var clamped = Math.min(inMax, Math.max(inMin, value));
+        return ((clamped - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
+    },
+
+    // Calculate all stakeholder satisfaction scores
     calculateSatisfaction(gameState) {
-        const satisfaction = {
-            players: 0,
-            owners: 0,
-            networks: 0,
-            fans: 0
-        };
+        var satisfaction = { players: 0, owners: 0, networks: 0, fans: 0 };
+        var allocation   = gameState.allocation;
+        var sliders      = gameState.sliders;
+        var activeEvent  = gameState.activeEvent || null;
+        var difficulty   = gameState.difficulty  || 'normal';
 
-        // Get allocation values (already in billions)
-        const { allocation, sliders } = gameState;
+        // Difficulty multiplier: hard amplifies swings, easy softens them
+        var diffMult = difficulty === 'hard' ? 1.2 : difficulty === 'easy' ? 0.85 : 1.0;
 
-        // === PLAYERS SATISFACTION ===
-        // Players care about: their allocation, minimum salary, player revenue share
-        let playerBase = this.mapRange(allocation.players, 2.5, 4.5, 30, 90);
-        let salaryBonus = this.mapRange(sliders.salary, 400, 1500, -10, 20);
-        let shareBonus = this.mapRange(sliders.playershare, 40, 60, -20, 30);
+        // === PLAYERS ===
+        var playerBase  = this.mapRange(allocation.players, 2.5, 4.5, 30, 90);
+        var salaryBonus = this.diminishingReturns(this.mapRange(sliders.salary, 400, 1500, -10, 20)) * diffMult;
+        var shareBonus  = this.diminishingReturns(this.mapRange(sliders.playershare, 40, 60, -20, 30)) * diffMult;
+        if (activeEvent && activeEvent.stakeholder === 'players') {
+            shareBonus += activeEvent.modifier;
+        }
         satisfaction.players = Math.round(Math.min(100, Math.max(0, playerBase + salaryBonus + shareBonus)));
 
-        // === OWNERS SATISFACTION ===
-        // Owners care about: their allocation, low player share, reasonable revenue sharing
-        let ownerBase = this.mapRange(allocation.owners, 1.5, 3.5, 30, 90);
-        let ownerSharePenalty = this.mapRange(sliders.playershare, 40, 60, 20, -20); // inverse
-        let revSharePenalty = this.mapRange(sliders.sharing, 10, 60, 10, -15);
-        satisfaction.owners = Math.round(Math.min(100, Math.max(0, ownerBase + ownerSharePenalty + revSharePenalty)));
+        // === OWNERS ===
+        var ownerBase          = this.mapRange(allocation.owners, 1.5, 3.5, 30, 90);
+        var ownerSharePenalty  = this.diminishingReturns(this.mapRange(sliders.playershare, 40, 60, 15, -20)) * diffMult;
+        var ownerSharingPenalty= this.diminishingReturns(this.mapRange(sliders.sharing, 10, 60, 10, -15)) * diffMult;
+        if (activeEvent && activeEvent.stakeholder === 'owners') {
+            ownerBase += activeEvent.modifier;
+        }
+        satisfaction.owners = Math.round(Math.min(100, Math.max(0, ownerBase + ownerSharePenalty + ownerSharingPenalty)));
 
-        // === NETWORKS SATISFACTION ===
-        // Networks care about: their allocation, game times (prime time), streaming balance
-        let networkBase = this.mapRange(allocation.networks, 1.0, 2.5, 30, 85);
-        let timeBonus = this.getTimeBonus(sliders.gametime);
-        let streamingBalance = this.getStreamingBalance(sliders.streaming);
-        satisfaction.networks = Math.round(Math.min(100, Math.max(0, networkBase + timeBonus + streamingBalance)));
+        // === NETWORKS ===
+        var networkBase    = this.mapRange(allocation.networks, 1.0, 2.5, 30, 85);
+        var timeBonus      = this.getTimeBonus(sliders.gametime) * diffMult;
+        var streamingBonus = this.getStreamingBalance(sliders.streaming) * diffMult;
+        if (activeEvent && activeEvent.stakeholder === 'networks') {
+            timeBonus += activeEvent.modifier;
+        }
+        satisfaction.networks = Math.round(Math.min(100, Math.max(0, networkBase + timeBonus + streamingBonus)));
 
-        // === FANS SATISFACTION ===
-        // Fans care about: competitive balance (revenue sharing), game times, streaming access
-        let fanBase = 50; // Start neutral
-        let balanceBonus = this.mapRange(sliders.sharing, 10, 60, -20, 30);
-        let fanTimeBonus = this.getFanTimeBonus(sliders.gametime);
-        let streamingAccess = this.mapRange(sliders.streaming, 0, 100, -10, 15);
-        // Fans also care about player satisfaction (they want stars happy)
-        let starBonus = satisfaction.players > 70 ? 10 : (satisfaction.players < 40 ? -15 : 0);
-        satisfaction.fans = Math.round(Math.min(100, Math.max(0, fanBase + balanceBonus + fanTimeBonus + streamingAccess + starBonus)));
+        // === FANS ===
+        var fanBase      = 50;
+        var sharingBonus = this.diminishingReturns(this.mapRange(sliders.sharing, 10, 60, -10, 20)) * diffMult;
+        var fanTimeBonus = this.getFanTimeBonus(sliders.gametime) * diffMult;
+        var streamFan    = this.mapRange(sliders.streaming, 0, 100, 0, 15);
+        var starBonus    = satisfaction.players >= 70 ? 5 : (satisfaction.players < 40 ? -5 : 0);
+        if (activeEvent && activeEvent.stakeholder === 'fans') {
+            sharingBonus += activeEvent.modifier;
+        }
+        satisfaction.fans = Math.round(Math.min(100, Math.max(0, fanBase + sharingBonus + fanTimeBonus + streamFan + starBonus)));
 
         return satisfaction;
     },
 
-    // Helper: Map a value from one range to another
-    mapRange(value, inMin, inMax, outMin, outMax) {
-        return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+    // Networks prefer 8–9 PM prime time
+    getTimeBonus(gametime) {
+        if (gametime >= 8 && gametime <= 9)    return 15;
+        if (gametime >= 7.5 && gametime < 8)   return 5;
+        if (gametime > 9 && gametime <= 10)    return 5;
+        if (gametime > 10)                     return -10;
+        return -5;
     },
 
-    // Game time bonus for networks (they want prime time 8-9pm)
-    getTimeBonus(time) {
-        if (time >= 7.5 && time <= 9) return 15; // Prime time
-        if (time >= 9 && time <= 10) return 5;   // Okay
-        return -10; // Too early or too late
+    // Fans prefer 7–8:30 PM (earlier than networks)
+    getFanTimeBonus(gametime) {
+        if (gametime >= 7 && gametime <= 8.5)  return 10;
+        if (gametime > 8.5 && gametime <= 9.5) return 0;
+        if (gametime > 9.5)                    return -15;
+        return 0;
     },
 
-    // Game time bonus for fans (they want reasonable times)
-    getFanTimeBonus(time) {
-        if (time >= 7 && time <= 8.5) return 15;  // Ideal for East Coast families
-        if (time >= 8.5 && time <= 9.5) return 5; // Okay
-        return -15; // Too late, kids can't watch
-    },
-
-    // Streaming balance for networks (they want some streaming but not too much)
+    // Networks prefer 20–40% streaming sweet spot
     getStreamingBalance(streaming) {
-        if (streaming >= 20 && streaming <= 40) return 15;  // Sweet spot
-        if (streaming >= 10 && streaming <= 60) return 5;   // Acceptable
-        if (streaming < 10) return -5;  // Missing streaming revenue
-        return -15; // Too much streaming hurts traditional TV
+        if (streaming >= 20 && streaming <= 40) return 10;
+        if (streaming < 20) return this.mapRange(streaming, 0, 20, -5, 10);
+        if (streaming > 40 && streaming <= 70)  return this.mapRange(streaming, 40, 70, 10, -5);
+        return -15;
     },
 
-    // Calculate overall score (average of all stakeholders)
+    // Overall score = simple average of all four stakeholders
     calculateOverallScore(satisfaction) {
-        const { players, owners, networks, fans } = satisfaction;
-        return Math.round((players + owners + networks + fans) / 4);
+        var vals = Object.values(satisfaction);
+        return Math.round(vals.reduce(function(a, b) { return a + b; }, 0) / vals.length);
     },
 
-    // Determine tier based on overall score
-    determineTier(overallScore, satisfaction) {
-        // Check if any stakeholder is below critical threshold
-        const minSat = Math.min(satisfaction.players, satisfaction.owners, satisfaction.networks, satisfaction.fans);
+    // Tier determination — thresholds scale with difficulty
+    determineTier(satisfaction, gameState) {
+        var overall = this.calculateOverallScore(satisfaction);
+        var minSat  = Math.min.apply(null, Object.values(satisfaction));
+        var diff    = (gameState && gameState.difficulty) ? gameState.difficulty : 'normal';
 
-        if (minSat < 40) {
-            return 'fail';
-        }
+        var thresholds = {
+            easy:   { gold: [85, 70], silver: [72, 55], bronze: [60, 38], fail: 30 },
+            normal: { gold: [90, 75], silver: [80, 60], bronze: [70, 45], fail: 40 },
+            hard:   { gold: [93, 80], silver: [84, 65], bronze: [74, 50], fail: 45 }
+        };
+        var t = thresholds[diff] || thresholds.normal;
 
-        if (overallScore >= 90 && minSat >= 75) {
-            return 'gold';
-        } else if (overallScore >= 80 && minSat >= 60) {
-            return 'silver';
-        } else if (overallScore >= 70 && minSat >= 45) {
-            return 'bronze';
-        } else {
-            return 'fail';
-        }
+        if (minSat < t.fail)                              return 'fail';
+        if (overall >= t.gold[0]   && minSat >= t.gold[1])   return 'gold';
+        if (overall >= t.silver[0] && minSat >= t.silver[1]) return 'silver';
+        if (overall >= t.bronze[0] && minSat >= t.bronze[1]) return 'bronze';
+        return 'fail';
     },
 
-    // Calculate competitive balance score (for display)
+    // Competitive balance meter (higher sharing = more balance)
     calculateCompetitiveBalance(sliders) {
-        // Higher revenue sharing = more balance
-        let balance = this.mapRange(sliders.sharing, 10, 60, 20, 90);
+        var balance = this.mapRange(sliders.sharing, 10, 60, 20, 90);
         return Math.round(Math.min(100, Math.max(0, balance)));
     },
 
-    // Check deal stability (returns status and message)
+    // Deal stability for heartbeat + status indicator
     checkStability(satisfaction) {
-        const minSat = Math.min(satisfaction.players, satisfaction.owners, satisfaction.networks, satisfaction.fans);
-        const avgSat = this.calculateOverallScore(satisfaction);
+        var minSat = Math.min.apply(null, Object.values(satisfaction));
+        var avgSat = this.calculateOverallScore(satisfaction);
 
-        if (minSat < 30) {
-            return {
-                status: 'critical',
-                message: 'DEAL COLLAPSING',
-                color: 'danger'
-            };
-        } else if (minSat < 45) {
-            return {
-                status: 'unstable',
-                message: 'DEAL UNSTABLE',
-                color: 'danger'
-            };
-        } else if (minSat < 60 || avgSat < 60) {
-            return {
-                status: 'warning',
-                message: 'CONCERNS RISING',
-                color: 'warning'
-            };
-        } else {
-            return {
-                status: 'stable',
-                message: 'DEAL STABLE',
-                color: 'success'
-            };
-        }
+        if (minSat < 30) return { status: 'critical', message: 'DEAL COLLAPSING',  color: 'danger'  };
+        if (minSat < 45) return { status: 'unstable', message: 'DEAL UNSTABLE',    color: 'danger'  };
+        if (minSat < 60 || avgSat < 60) return { status: 'warning', message: 'CONCERNS RISING', color: 'warning' };
+        return { status: 'stable', message: 'DEAL STABLE', color: 'success' };
     },
 
-    // Get the stakeholder with lowest satisfaction
-    getLowestStakeholder(satisfaction) {
-        let lowest = 'players';
-        let lowestValue = satisfaction.players;
+    // Detect pairs of stakeholders with opposing interests
+    detectConflicts(gameState) {
+        var conflicts = [];
+        var sliders   = gameState.sliders;
 
-        for (const [key, value] of Object.entries(satisfaction)) {
-            if (value < lowestValue) {
-                lowest = key;
-                lowestValue = value;
-            }
+        if (sliders.playershare >= 54) {
+            conflicts.push({ a: 'players', b: 'owners',
+                message: 'High player share thrills players but angers owners' });
+        } else if (sliders.playershare <= 43) {
+            conflicts.push({ a: 'players', b: 'owners',
+                message: 'Low player share pleases owners but upsets players' });
         }
 
+        if (sliders.sharing >= 50) {
+            conflicts.push({ a: 'fans', b: 'owners',
+                message: 'High revenue sharing helps fans but cuts owner profits' });
+        }
+
+        if (sliders.gametime >= 10) {
+            conflicts.push({ a: 'networks', b: 'fans',
+                message: 'Very late start: great for ratings, bad for East Coast fans' });
+        }
+
+        if (sliders.streaming >= 65) {
+            conflicts.push({ a: 'networks', b: 'fans',
+                message: 'Heavy streaming boosts networks but frustrates traditional fans' });
+        }
+
+        return conflicts;
+    },
+
+    // Stakeholder with the lowest satisfaction
+    getLowestStakeholder(satisfaction) {
+        var lowest = 'players';
+        var lowestValue = satisfaction.players;
+        for (var key in satisfaction) {
+            if (satisfaction[key] < lowestValue) {
+                lowest = key;
+                lowestValue = satisfaction[key];
+            }
+        }
         return { name: lowest, value: lowestValue };
     },
 
-    // Get reaction level based on satisfaction
-    getReactionLevel(satisfaction) {
-        if (satisfaction >= 85) return 'veryHappy';
-        if (satisfaction >= 70) return 'happy';
-        if (satisfaction >= 50) return 'neutral';
-        if (satisfaction >= 35) return 'unhappy';
-        if (satisfaction >= 20) return 'angry';
+    // Map a satisfaction percentage to a reaction string
+    getReactionLevel(pct) {
+        if (pct >= 85) return 'veryHappy';
+        if (pct >= 70) return 'happy';
+        if (pct >= 50) return 'neutral';
+        if (pct >= 35) return 'unhappy';
+        if (pct >= 20) return 'angry';
         return 'furious';
     },
 
-    // Generate narrative based on final state
-    generateNarrative(tier, satisfaction, sliders) {
-        const narratives = {
-            gold: `Congratulations! You've negotiated a landmark media deal that satisfies all parties. Players receive fair compensation (${satisfaction.players}% satisfied), owners maintain healthy profits (${satisfaction.owners}%), networks secured prime content (${satisfaction.networks}%), and fans get competitive baseball (${satisfaction.fans}%). This deal will reshape MLB for the next decade.`,
-
-            silver: `Good work! The deal is done, though some compromises were necessary. The ${sliders.sharing}% revenue sharing creates reasonable competitive balance. While not perfect, all stakeholders accepted the terms. This proves you understand the delicate balance of league economics.`,
-
-            bronze: `The deal passed, but just barely. Some stakeholders are unhappy with the terms. The league will need to revisit certain aspects before the deal expires. You've learned that pleasing everyone in sports business is nearly impossible—trade-offs are inevitable.`,
-
-            fail: `The deal collapsed. ${this.getLowestStakeholder(satisfaction).name.charAt(0).toUpperCase() + this.getLowestStakeholder(satisfaction).name.slice(1)} (${this.getLowestStakeholder(satisfaction).value}% satisfied) couldn't accept the terms. In real negotiations, this would mean a lockout or strike. Remember: every stakeholder has a breaking point.`
+    // Narrative text for results screen
+    generateNarrative(tier, satisfaction) {
+        var lowest = this.getLowestStakeholder(satisfaction);
+        var cap    = lowest.name.charAt(0).toUpperCase() + lowest.name.slice(1);
+        var narratives = {
+            gold:   'Your deal struck the perfect balance. All stakeholders walked away satisfied — a rare feat in billion-dollar negotiations. The new media contract will transform MLB for a generation.',
+            silver: 'A solid deal that most stakeholders can accept. Not everyone got everything they wanted, but the agreement will hold. The league moves forward with renewed stability.',
+            bronze: cap + ' accepted reluctantly at ' + lowest.value + '% satisfaction. The deal passed but expect pressure to renegotiate before the ink is dry.',
+            fail:   'The deal fell apart. ' + cap + ' walked out at ' + lowest.value + '% satisfaction — far below the minimum needed. Go back to the table.'
         };
-
         return narratives[tier] || narratives.fail;
     },
 
-    // Validate allocation totals to exactly $8B
     validateAllocation(allocation) {
-        const total = allocation.players + allocation.owners + allocation.networks + allocation.league;
-        return Math.abs(total - this.TOTAL_DEAL) < 0.1; // Allow small floating point errors
+        var total = Object.values(allocation).reduce(function(a, b) { return a + b; }, 0);
+        return Math.abs(total - this.TOTAL_DEAL) < 0.1;
     },
 
-    // Calculate remaining money to allocate
     getRemainingMoney(allocation) {
-        const total = allocation.players + allocation.owners + allocation.networks + allocation.league;
+        var total = Object.values(allocation).reduce(function(a, b) { return a + b; }, 0);
         return Math.max(0, this.TOTAL_DEAL - total);
     }
 };
 
-// Export for module use (if needed)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Calculations;
 }

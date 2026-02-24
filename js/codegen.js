@@ -155,7 +155,27 @@ const CodeGenerator = {
     }
 };
 
+// Short-form alias used by v2 ui.js and game.js
+const CodeGen = {
+    generate: function(tier, overall) {
+        return CodeGenerator.generateClaimCode(tier) || ('MLB-FAIL-000000-' + new Date().getFullYear());
+    },
+    store: function(tier, satisfaction, duration) {
+        var code = CodeGenerator.generateClaimCode(tier);
+        var data = {
+            claimCode: code,
+            tier: tier,
+            timestamp: new Date().toISOString(),
+            overallScore: Calculations.calculateOverallScore(satisfaction),
+            satisfaction: satisfaction,
+            duration: duration || 0
+        };
+        CodeGenerator.storeResult(data);
+        return code;
+    }
+};
+
 // Export for module use (if needed)
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = CodeGenerator;
+    module.exports = { CodeGenerator, CodeGen };
 }

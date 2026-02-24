@@ -992,9 +992,12 @@ body {
     margin-top: 20px;
 }
 
-/* Mini-game selector - simplified */
+/* Mini-game selector */
 .minigame-selector {
-    display: none; /* Hidden by default - we'll show a simple quiz instead */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 20px 0;
 }
 
 /* Quick Knowledge Check styling */
@@ -1173,3 +1176,622 @@ body {
 .celebrate {
     animation: celebrate 0.5s ease;
 }
+
+/* ==================== V2 ADDITIONS ==================== */
+
+/* --- Phase Progress Stepper --- */
+.phase-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mlb-navy);
+    padding: 8px 20px;
+    gap: 0;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.45;
+    transition: opacity 0.4s ease;
+}
+
+.step-item.active {
+    opacity: 1;
+}
+
+.step-item.completed {
+    opacity: 0.8;
+}
+
+.step-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.4s ease;
+}
+
+.step-item.active .step-circle {
+    background: var(--mlb-red);
+}
+
+.step-item.completed .step-circle {
+    background: var(--success);
+}
+
+.step-item.completed .step-circle::after {
+    content: '✓';
+}
+
+.step-item.completed .step-circle > * {
+    display: none;
+}
+
+.step-label {
+    font-size: 11px;
+    color: white;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.step-connector {
+    width: 40px;
+    height: 2px;
+    background: rgba(255,255,255,0.25);
+    margin: 0 8px;
+}
+
+/* --- Phase Transition Animations --- */
+@keyframes phaseEnter {
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes phaseLeave {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(-30px); }
+}
+
+.phase-entering {
+    animation: phaseEnter 0.35s ease forwards;
+}
+
+.phase-leaving {
+    animation: phaseLeave 0.25s ease forwards;
+}
+
+/* --- Slider Zone Indicators --- */
+.slider-zone-wrap {
+    position: relative;
+    margin: 10px 0 4px;
+}
+
+.slider-zones {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.zone {
+    height: 100%;
+}
+
+.zone-bad  { background: var(--danger); opacity: 0.55; }
+.zone-ok   { background: var(--warning); opacity: 0.55; }
+.zone-good { background: var(--success); opacity: 0.55; }
+
+.slider-zone-wrap .detail-slider {
+    width: 100%;
+    margin: 0;
+}
+
+/* --- Character Card Animations --- */
+@keyframes pulseReact {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.04); }
+    60%  { transform: scale(0.98); }
+    100% { transform: scale(1); }
+}
+
+.character {
+    border: 3px solid transparent;
+    transition: border-color 0.4s ease, background 0.4s ease;
+}
+
+.character.sat-good  { border-color: var(--success); background: #e8f5e9; }
+.character.sat-warn  { border-color: var(--warning); background: #fffde7; }
+.character.sat-bad   { border-color: var(--danger);  background: #ffebee; }
+
+.character.pulse-react {
+    animation: pulseReact 0.4s ease;
+}
+
+/* Conflict highlight on character cards */
+.character.conflict-highlight {
+    box-shadow: 0 0 0 3px #ff9800, 0 0 12px rgba(255,152,0,0.4);
+}
+
+.conflict-tooltip {
+    font-size: 10px;
+    color: #e65100;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 4px;
+    display: none;
+}
+
+.character.conflict-highlight .conflict-tooltip {
+    display: block;
+}
+
+/* --- Difficulty Selector --- */
+.difficulty-selector {
+    margin: 20px 0;
+}
+
+.difficulty-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #888;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.difficulty-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.difficulty-btn {
+    flex: 1;
+    max-width: 160px;
+    padding: 12px 10px;
+    border: 2px solid var(--gray-med);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.difficulty-btn:hover {
+    border-color: var(--mlb-navy);
+}
+
+.difficulty-btn.active {
+    border-color: var(--mlb-navy);
+    background: var(--mlb-navy);
+    color: white;
+}
+
+.difficulty-btn.active .diff-desc {
+    color: rgba(255,255,255,0.7);
+}
+
+.diff-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.diff-desc {
+    font-size: 11px;
+    color: #888;
+}
+
+/* --- Breaking News Banner --- */
+.news-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    background: linear-gradient(90deg, #b71c1c, var(--mlb-red));
+    color: white;
+    padding: 0;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+    animation: slideDown 0.4s ease;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.news-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.news-icon { font-size: 20px; }
+
+.news-tag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    background: white;
+    color: var(--mlb-red);
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.news-headline {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.news-dismiss {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.news-dismiss:hover { opacity: 1; }
+
+/* --- Mini-game Cards --- */
+.minigame-card {
+    background: var(--gray-light);
+    border: 2px solid var(--gray-med);
+    border-radius: 12px;
+    padding: 20px 15px;
+    text-align: center;
+    cursor: default;
+    opacity: 0.6;
+    transition: all 0.25s ease;
+}
+
+.minigame-card.playable {
+    cursor: pointer;
+    opacity: 1;
+    border-color: var(--mlb-navy);
+}
+
+.minigame-card.playable:hover {
+    background: #e8f0fe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,43,92,0.2);
+}
+
+.minigame-card .mg-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.minigame-card h3 {
+    font-size: 14px;
+    color: var(--mlb-navy);
+    margin-bottom: 6px;
+}
+
+.minigame-card p {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.mg-status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #888;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--gray-med);
+}
+
+.minigame-card.playable .mg-status {
+    background: var(--mlb-navy);
+    color: white;
+}
+
+.minigame-card.played .mg-status {
+    background: var(--success);
+    color: white;
+}
+
+/* --- Team Market Quiz Mini-Game --- */
+.team-display {
+    margin: 20px 0;
+}
+
+.team-badge {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--mlb-navy);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    transition: background 0.3s ease;
+}
+
+.team-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--mlb-navy);
+    margin-bottom: 6px;
+}
+
+.team-market-hint {
+    font-size: 12px;
+    color: #888;
+}
+
+.market-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.market-btn {
+    flex: 1;
+    max-width: 160px;
+    padding: 14px 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.market-btn.market-big {
+    background: var(--mlb-navy);
+    color: white;
+}
+
+.market-btn.market-big:hover {
+    background: #003a7a;
+    transform: translateY(-2px);
+}
+
+.market-btn.market-small {
+    background: var(--mlb-red);
+    color: white;
+}
+
+.market-btn.market-small:hover {
+    background: #a50e33;
+    transform: translateY(-2px);
+}
+
+.team-quiz-feedback {
+    min-height: 28px;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 8px 0;
+    transition: all 0.3s ease;
+}
+
+.team-quiz-feedback.correct { color: var(--success); }
+.team-quiz-feedback.incorrect { color: var(--danger); }
+
+/* --- Salary Cap Calculator Mini-Game --- */
+.calc-problem {
+    background: var(--gray-light);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    font-size: 16px;
+}
+
+.calc-revenue, .calc-question {
+    display: block;
+    margin: 8px 0;
+    color: var(--mlb-navy);
+}
+
+.calc-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.calc-option-btn {
+    padding: 14px 10px;
+    border: 2px solid var(--gray-med);
+    border-radius: 8px;
+    background: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--mlb-navy);
+    transition: all 0.2s ease;
+}
+
+.calc-option-btn:hover {
+    border-color: var(--mlb-navy);
+    background: #e8f0fe;
+}
+
+.calc-option-btn.correct {
+    border-color: var(--success);
+    background: #e8f5e9;
+    color: var(--success);
+}
+
+.calc-option-btn.incorrect {
+    border-color: var(--danger);
+    background: #ffebee;
+    color: var(--danger);
+}
+
+.calc-feedback {
+    min-height: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    text-align: center;
+}
+
+/* --- Strategy Tips Panel --- */
+.strategy-tips-card {
+    border: none;
+    padding: 0;
+}
+
+.strategy-tips-card summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.strategy-tips-card summary::-webkit-details-marker { display: none; }
+
+.strategy-tips-card h4 {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+#strategy-tips-content {
+    margin-top: 8px;
+}
+
+.tip-item {
+    font-size: 12px;
+    color: #444;
+    background: #fff8e1;
+    border-left: 3px solid var(--warning);
+    padding: 7px 10px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 6px;
+    line-height: 1.5;
+}
+
+/* --- Results Screen V2 --- */
+.grade-badge {
+    display: inline-block;
+    padding: 10px 30px;
+    border-radius: 50px;
+    margin-bottom: 10px;
+}
+
+.grade-badge.gold-badge {
+    background: linear-gradient(135deg, #FFD700, #FFA000);
+    box-shadow: 0 4px 20px rgba(255,215,0,0.5);
+}
+
+.grade-badge.silver-badge {
+    background: linear-gradient(135deg, #E0E0E0, #9E9E9E);
+    box-shadow: 0 4px 20px rgba(192,192,192,0.5);
+}
+
+.grade-badge.bronze-badge {
+    background: linear-gradient(135deg, #CD7F32, #8D5524);
+    box-shadow: 0 4px 20px rgba(205,127,50,0.5);
+}
+
+.grade-score {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--mlb-navy);
+}
+
+.grade-pct {
+    font-size: 28px;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--mlb-navy);
+    border: 2px solid var(--mlb-navy);
+    padding: 12px 30px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 12px;
+}
+
+.btn-secondary:hover {
+    background: var(--mlb-navy);
+    color: white;
+}
+
+.fail-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+
+/* --- Confetti Animation (Gold tier) --- */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    top: -20px;
+    border-radius: 2px;
+    animation: confettiFall linear infinite;
+}
+
+.confetti-piece:nth-child(1)  { left: 8%;  background: #FFD700; animation-duration: 3.1s; animation-delay: 0.0s; }
+.confetti-piece:nth-child(2)  { left: 18%; background: #CE1141; animation-duration: 2.8s; animation-delay: 0.3s; }
+.confetti-piece:nth-child(3)  { left: 28%; background: #002B5C; animation-duration: 3.4s; animation-delay: 0.1s; }
+.confetti-piece:nth-child(4)  { left: 38%; background: #28A745; animation-duration: 2.6s; animation-delay: 0.5s; }
+.confetti-piece:nth-child(5)  { left: 48%; background: #FFD700; animation-duration: 3.2s; animation-delay: 0.2s; }
+.confetti-piece:nth-child(6)  { left: 58%; background: #CE1141; animation-duration: 2.9s; animation-delay: 0.7s; }
+.confetti-piece:nth-child(7)  { left: 68%; background: #FFC107; animation-duration: 3.0s; animation-delay: 0.4s; }
+.confetti-piece:nth-child(8)  { left: 78%; background: #002B5C; animation-duration: 2.7s; animation-delay: 0.6s; }
+.confetti-piece:nth-child(9)  { left: 88%; background: #28A745; animation-duration: 3.3s; animation-delay: 0.1s; }
+.confetti-piece:nth-child(10) { left: 95%; background: #FFD700; animation-duration: 2.5s; animation-delay: 0.8s; }
+.confetti-piece:nth-child(11) { left: 12%; background: #CE1141; animation-duration: 3.5s; animation-delay: 0.9s; }
+.confetti-piece:nth-child(12) { left: 55%; background: #FFC107; animation-duration: 2.8s; animation-delay: 0.3s; }
+
+@keyframes confettiFall {
+    0%   { transform: translateY(0)   rotate(0deg);   opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
